@@ -14,7 +14,7 @@ const router = new express.Router()
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'img')
+        cb(null, 'public/img')
     },
     filename: function (req, file, cb) {
         
@@ -82,12 +82,19 @@ router.post('/like',auth,async(req,res)=>{
         "like":req.body.like
     })
     
-    await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:1 } }, (err, docs)=>{ 
+    const user = await Like.find({user_id:req.user._id,post_id:req.body.post_id})
+    if(user)
+    {
+        res.status(400).send("u have already like this post")
+    }
+    else
+    {
+        const lk=await like.save()
+        await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:1 } }, (err, docs)=>{ 
             if(err){ console.log(err) } 
-    }); 
-
-    const lk=await like.save()
-    res.send({lk })
+        });
+        res.send({lk })
+    }
 },(error,req,res,next)=>{
     res.status(400).send({error:error.message})
 })
