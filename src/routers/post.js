@@ -174,9 +174,10 @@ router.get('/view-friends-post',auth,async(req,res)=>{
     {
         const myFriends = await FrientRequest.find({receiver_id:req.user._id,status :1}).populate({path:'sender_id',select:'name'}).exec()
 
-        // const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
+        const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
+        const totalPost =myFriends.filter((myfriend)=>{ myfriend.sender_id._id === post.user })
         
-        res.send(myFriends[0].sender_id)
+        res.send(totalPost)
         // res.send(post.like)
     }
     catch(e)
