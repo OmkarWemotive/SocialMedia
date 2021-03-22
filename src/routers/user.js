@@ -112,7 +112,7 @@ router.post('/search',async(req,res)=>{
     // res.send(userName)
     try
     {
-        const user = await User.find({ 'name' : { $regex : '^userName$', $options : 'i' } })
+        const user = await User.find({ 'name' : { $regex : userName, $options : 'i' } })
         res.send(user)
     }
     catch(e)
