@@ -73,6 +73,8 @@ router.get('/users',async(req,res)=>{
     }
 })
 
+
+
 //-----------------------------------Refactor Update User ----------------------------
 
 router.patch('/update',auth,async (req,res)=>{
@@ -110,7 +112,7 @@ router.post('/search',async(req,res)=>{
     // res.send(userName)
     try
     {
-        const user = await User.find({ 'name' : { $regex : userName, $options : 'i' } })
+        const user = await User.find({ 'name' : { $regex : '^userName$', $options : 'i' } })
         res.send(user)
     }
     catch(e)
@@ -160,7 +162,7 @@ router.post('/cancle-request', auth,async(req,res)=>{
 router.get('/my-request',auth,async(req,res)=>{
     try
     {
-        const reqStatus = await FrientRequest.find({receiver_id:req.user._id,status :0})
+        const reqStatus = await FrientRequest.find({receiver_id:req.user._id,status :0}).populate({path:'sender_id',select:'name'}).exec()
         res.send(reqStatus)
     }
     catch(e)
@@ -199,7 +201,7 @@ router.post('/request-status', auth,async(req,res)=>{
 router.get('/my-frinds',auth,async(req,res)=>{
     try
     {
-        const reqStatus = await FrientRequest.find({receiver_id:req.user._id,status :1})
+        const reqStatus = await FrientRequest.find({receiver_id:req.user._id,status :1}).populate({path:'sender_id',select:'name'}).exec()
         res.send(reqStatus)
     }
     catch(e)

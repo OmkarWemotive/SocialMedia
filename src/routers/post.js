@@ -26,15 +26,22 @@ const upload = multer({ storage: storage })
 //----------------------------------User Added New Post --------------------------------------------
 
 router.post('/add-post',auth,upload.single('avatar'),async(req,res)=>{
-    
-    const path= '/img/'+req.file.originalname
-    const post= new Post({
+   
+    try
+    {
+        const path= '/img/'+req.file.originalname
+        const post= new Post({
         "image":path,
         "description":req.body.description,
         "user":req.user._id
-    })
-    const post1=await post.save()
-    res.send(post1)
+        })
+        const post1=await post.save()
+        res.send(post1)
+    }
+    catch(e)
+    {
+        res.status(400).send(e)
+    }
 },(error,req,res,next)=>{
     res.status(400).send({error:error.message})
 })
@@ -62,13 +69,24 @@ router.get('/post/:id',async(req,res)=>{
 //--------------------------------------Comment To Post-----------------------------------------------
 router.post('/comment',auth,async(req,res)=>{
 
-    const comment = new Comment({
-        "user_id":req.user._id,
-        "post_id":req.body.post_id,
-        "comment":req.body.comment
-    })
-    const cmt=await comment.save()
-    res.send(cmt)
+    try
+    {
+        const comment = new Comment({
+            "user_id":req.user._id,
+            "post_id":req.body.post_id,
+            "comment":req.body.comment
+        })
+        const cmt=await comment.save()
+        await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ comment:1 } }, (err, docs)=>{ 
+            if(err){ console.log(err) } 
+        });
+        res.send(cmt)
+    }
+    catch(e)
+    {
+        res.status(400).send(e)
+    }
+    
 },(error,req,res,next)=>{
     res.status(400).send({error:error.message})
 })
@@ -76,24 +94,33 @@ router.post('/comment',auth,async(req,res)=>{
 //--------------------------------------Like To Post-----------------------------------------------
 router.post('/like',auth,async(req,res)=>{
 
-    const like = new Like({
-        "user_id":req.user._id,
-        "post_id":req.body.post_id,
-        "like":req.body.like
-    })
-    
-    const user = await Like.find({user_id:req.user._id,post_id:req.body.post_id})
-    if(user)
+    try
     {
-        res.status(400).send("u have already like this post")
-    }
-    else
-    {
+        const like = new Like({
+            "user_id":req.user._id,
+            "post_id":req.body.post_id,
+            "like":req.body.like
+        })
         const lk=await like.save()
-        await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:1 } }, (err, docs)=>{ 
-            if(err){ console.log(err) } 
-        });
         res.send({lk })
+        // const user = await Like.find({user_id:req.user._id,post_id:req.body.post_id})
+        // if(!user)
+        // {
+        //     const lk=await like.save()
+        //     await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:1 } }, (err, docs)=>{ 
+        //         if(err){ console.log(err) } 
+        //     });
+        //     res.send({lk })
+        // }
+        // else
+        // {
+            
+        //     res.status(400).send("u have already like this post")
+        // }
+    }
+    catch(e)
+    {
+        res.status(400).send(e)
     }
 },(error,req,res,next)=>{
     res.status(400).send({error:error.message})
@@ -102,17 +129,60 @@ router.post('/like',auth,async(req,res)=>{
 //--------------------------------------Dislike To Post-----------------------------------------------
 router.post('/dislike',auth,async(req,res)=>{
 
-    const status = await Like.deleteMany({ 'user_id': req.user._id,'post_id':req.body.post_id });
+    try
+    {
+        const status = await Like.deleteMany({ 'user_id': req.user._id,'post_id':req.body.post_id });
     
-    await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:-1 } }, (err, docs)=>{ 
-        if(err){ console.log(err) } 
-    }); 
+        await Post.findByIdAndUpdate(req.body.post_id, { $inc:{ like:-1 } }, (err, docs)=>{ 
+            if(err){ console.log(err) } 
+        }); 
 
-    res.send({status})
+        res.send({status})
+    }
+    catch(e)
+    {
+        res.status(400).send(e)
+    }
+    
 },(error,req,res,next)=>{
     res.status(400).send({error:error.message})
 })
+//----------------------------------------Get all users Post--------------------------------------------------
 
+router.get('/view-all-post',async(req,res)=>{
+
+    try
+    {
+        const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
+        
+        res.send(post)
+        // res.send(post.like)
+    }
+    catch(e)
+    {
+        res.status(500).send()
+    }
+
+
+}) 
+//----------------------------------------Get all friends Post--------------------------------------------------
+
+router.get('/view-all-post',async(req,res)=>{
+
+    try
+    {
+        const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
+        
+        res.send(post)
+        // res.send(post.like)
+    }
+    catch(e)
+    {
+        res.status(500).send()
+    }
+
+
+}) 
 
 //----------------------------------------Get single Post--------------------------------------------------
 
@@ -137,6 +207,38 @@ router.get('/view-post/:id',async(req,res)=>{
 
 
 }) 
+//----------------------------------------View Comment--------------------------------------------------
+
+router.post('/view-comment',async(req,res)=>{
+
+    try
+    {
+        const _id = req.body.id
+        const comment=await Comment.find({post_id:_id}).populate({path:'user_id',select:'name'}).exec()
+        res.send(comment)
+        // res.send(post.like)
+    }
+    catch(e)
+    {
+        res.status(500).send()
+    }
+}) 
+//----------------------------------------View like--------------------------------------------------
+
+router.post('/view-like',async(req,res)=>{
+
+    const _id = req.body.id
+    try
+    {
+        const like=await Like.find({post_id:_id}).populate({path:'user_id',select:'name'}).exec()
+        res.send(like)
+        // res.send(post.like)
+    }
+    catch(e)
+    {
+        res.status(500).send()
+    }
+}) 
 
 //------------------------------------------Get All Post------------------------------------------------
 
@@ -144,14 +246,7 @@ router.get('/my-post',auth,async(req,res)=>{
         try
         {
             const userPost = await Post.find({user:req.user._id})
-            const cmn=[]
-            const allPost = userPost.filter((post)=>{
-                    cmt = Comment.find({post_id:post._id})
-                   
-            })
-
-
-            res.send({allPost,cmt})
+            res.send(userPost)
         }
         catch(e)
         {

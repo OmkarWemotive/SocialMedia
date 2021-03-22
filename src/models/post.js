@@ -20,6 +20,11 @@ const postSchema = new mongoose.Schema({
     {
         type:Number,
         default:00
+    },
+    comment:
+    {
+        type:Number,
+        default:00
     }
 },{
     timestamps:true
