@@ -24,12 +24,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage })
 //----------------------------------User Added New Post --------------------------------------------
-
-router.post('/add-post',auth,upload.single('avatar'),async(req,res)=>{
+// upload.single('avatar')
+router.post('/add-post',auth,async(req,res)=>{
    
     try
     {
-        const path= '/img/'+req.file.originalname
+        // const path= '/img/'+req.file.originalname
+        const path= '/img/d2.jpg'
         const post= new Post({
         "image":path,
         "description":req.body.description,
@@ -175,7 +176,7 @@ router.get('/view-friends-post',auth,async(req,res)=>{
 
         // const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
         
-        res.send(myFriends)
+        res.send(myFriends[0].sender_id)
         // res.send(post.like)
     }
     catch(e)
