@@ -5,7 +5,7 @@ const Post= require('../models/post')
 const Comment = require('../models/comment')
 const Like = require('../models/like')
 const auth=require('../middlware/auth')
-
+const FrientRequest =require('../models/friendRequest')
 const router = new express.Router()
 
 
@@ -167,13 +167,15 @@ router.get('/view-all-post',async(req,res)=>{
 }) 
 //----------------------------------------Get all friends Post--------------------------------------------------
 
-router.get('/view-all-post',async(req,res)=>{
+router.get('/view-friends-post',auth,async(req,res)=>{
 
     try
     {
-        const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
+        const myFriends = await FrientRequest.find({receiver_id:req.user._id,status :1}).populate({path:'sender_id',select:'name'}).exec()
+
+        // const post=await Post.find({}).populate({path:'user',select:'name'}).exec()
         
-        res.send(post)
+        res.send(myFriends)
         // res.send(post.like)
     }
     catch(e)
