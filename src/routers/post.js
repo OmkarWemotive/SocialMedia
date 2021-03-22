@@ -25,12 +25,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 //----------------------------------User Added New Post --------------------------------------------
 // upload.single('avatar')
-router.post('/add-post',auth,async(req,res)=>{
+router.post('/add-post',auth,upload.single('avatar'),async(req,res)=>{
    
     try
     {
-        // const path= '/img/'+req.file.originalname
-        const path= '/img/d2.jpg'
+        const path= '/img/'+req.file.originalname
+        // const path= '/img/d2.jpg'
         const post= new Post({
         "image":path,
         "description":req.body.description,
