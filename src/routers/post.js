@@ -14,7 +14,7 @@ const router = new express.Router()
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/img')
+        cb(null, 'public/img/')
     },
     filename: function (req, file, cb) {
         
@@ -29,12 +29,10 @@ router.post('/add-post',auth,upload.single('avatar'),async(req,res)=>{
    
     try
     {
-        const path= '/img/'+req.file.originalname
-        // const path= '/img/d2.jpg'
         const post= new Post({
-        "image":path,
+        "image":req.file.originalname,
         "description":req.body.description,
-        "user":req.user._id
+        "user_id":req.user._id
         })
         const post1=await post.save()
         res.send(post1)
@@ -50,22 +48,25 @@ router.post('/add-post',auth,upload.single('avatar'),async(req,res)=>{
 //--------------------------------- Show single Post ------------------------------------
 router.get('/post/:id',async(req,res)=>{
     const _id = req.params.id
-    console.log(_id)
+    // console.log(_id)
     try
     {
         const post=await Post.findById(_id)
-        if(!post)
+        const path= __dirname+"../../public/img/d2.jpg"
+        if(post.length === 0)
         {
-            return res.status(404).send()
+            // return res.status(404).send()
         }
-        res.set('Content-Type','image/jpg')
-        res.send("src"+post.image)
+        //res.set('Content-Type','image/jpg')
+        //res.send(__dirname+"../../public/img/d2.jpg")
+        // res.send(post)
     }
     catch(e)
     {
         res.status(500).send()
     }
 })
+
 
 //--------------------------------------Comment To Post-----------------------------------------------
 router.post('/comment',auth,async(req,res)=>{
